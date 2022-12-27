@@ -9,15 +9,42 @@ data_player_game <- read.csv('C:\\Users\\Acer\\Desktop\\2_1\\Statistica\\Project
 data_player_adv <- read.csv('C:\\Users\\Acer\\Desktop\\2_1\\Statistica\\Project_NBA\\nba2021_advanced.csv')
 
 #=======================================================================================
+
+# Load the team data
+data_team <- read.csv('C:\\Users\\Acer\\Desktop\\2_1\\Statistica\\Project_NBA\\nba_team_stats_00_to_21.csv')
+data_team_playoff <- read.csv('C:\\Users\\Acer\\Desktop\\2_1\\Statistica\\Project_NBA\\nba_team_stats_playoffs_00_to_21.csv')
+
+# Extract the data of season 20/21
+data_team <- data_team[data_team$SEASON == '2020-21', ]
+data_team_playoff <- data_team_playoff[data_team_playoff$season == '2020-21', ]
+
 # Load the library for the select function
 library(dplyr)
 #=======================================================================================
+# Merge the player data
 data <- left_join(data_player_game, data_player_adv, by = "Player", suffix = c("", ".y")) %>%
   select(-ends_with(".y"))
 
 data <- left_join(data, data_2k, by = "Player", suffix = c("", ".y")) %>%
   select(-ends_with(".y"))
 
+#=======================================================================================
+# Merge the player and team data
+#---------------------------------------------------------------------------------------
+# Change the name of the teams to their abbreviations
+# Extract all the team names of team dataset
+team_name <- data_team['TEAM']
+# Order the names by alphabetical order
+#---------------------------------------------------------------------------------------
+
+####################################################################################
+####################################################################################
+# change the team names and merge team data with player data
+
+
+
+
+data <- left_join(data, data_team, by = "Player")
 #=======================================================================================
 # Remove the redundant columns
 data <- data[,!duplicated(names(data))]
@@ -48,7 +75,7 @@ data <- data[rowSums(is.na(data)) == 0, ]
 # Check if there is NA values
 colSums(is.na(data))
 
-
+View(data)
 
 
 
