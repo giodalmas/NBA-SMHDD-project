@@ -33,7 +33,20 @@ data <- left_join(data, data_2k, by = "Player", suffix = c("", ".y")) %>%
 #---------------------------------------------------------------------------------------
 # Change the name of the teams to their abbreviations
 # Extract all the team names of team dataset
+
+
 team_name <- data_team['TEAM']
+
+# Extract the unique team name abbreviations of data
+
+# Change Tm of data to TEAM
+colnames(data)[4] <- 'TEAM'
+
+name_abb <- unique(data$TEAM)
+name_abb
+
+
+
 # Order the names by alphabetical order
 #---------------------------------------------------------------------------------------
 
