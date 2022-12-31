@@ -141,13 +141,6 @@ path_open <- read.csv('path_detail_open.csv')
 path_made <- read.csv('path_detail_made.csv')
 path_miss <- read.csv('path_detail_miss.csv')
 
-
-
-
-
-
-
-
 #---------------------------------------------------------------------------------------
 # Check for the number of NA values 
 colSums(is.na(path))
@@ -233,30 +226,17 @@ path_miss = path_miss %>% group_by(Player)%>%
 #======================================================================================
 #--------------------------------------------------------------------------------------
 # Merge the datasets
-data <- left_join(data, path, by='Player')
-data <- left_join(data, path_def, by='Player')
-data <- left_join(data, path_open, by='Player')
+data <- left_join(data, path, by='Player')   # .x: Path dataset
+data <- left_join(data, path_def, by='Player')  # .y: Path_def dataset
+data <- left_join(data, path_open, by='Player')   # : Path_open dataset
 data <- left_join(data, path_made, by='Player')
 data <- left_join(data, path_miss, by='Player')
 #======================================================================================
 
-rowSums(is.na(data))
 data <- data[complete.cases(data),]
+rowSums(is.na(data))
 
 sort(data$Player)
-
-########################################################################################
-########################################################################################
-#=======================================================================================
-# NEW IDEA: The codes above showed that the strategy with rows works, our non-NA dataset
-# changes the size from (85, 111) to (35, 129). The number of features can be further
-# increased by considering other path dataset.
-#---------------------------------------------------------------------------------------
-# For each path dataset, we will get path details of the player by taking the mean of 
-# info about that player in that dataset.
-########################################################################################
-########################################################################################
-#=======================================================================================
 
 
 
