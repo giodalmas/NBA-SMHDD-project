@@ -1,17 +1,17 @@
 #===========================================================================================================================
 # Load the dataset of the players
 # The 2k player dataset
-data_2k <- read.csv('C:\\Users\\Acer\\Desktop\\2_1\\Statistica\\Project_NBA\\2K20_ratings.csv')
+data_2k <- read.csv('2K20_ratings.csv')
 
 # 2021 Player dataset
-data_player_game <- read.csv('C:\\Users\\Acer\\Desktop\\2_1\\Statistica\\Project_NBA\\nba2021_per_game.csv')
-data_player_adv <- read.csv('C:\\Users\\Acer\\Desktop\\2_1\\Statistica\\Project_NBA\\nba2021_advanced.csv')
+data_player_game <- read.csv('nba2021_per_game.csv')
+data_player_adv <- read.csv('nba2021_advanced.csv')
 
 #=======================================================================================
 
 # Load the team data
-data_team <- read.csv('C:\\Users\\Acer\\Desktop\\2_1\\Statistica\\Project_NBA\\nba_team_stats_00_to_21.csv')
-data_team_playoff <- read.csv('C:\\Users\\Acer\\Desktop\\2_1\\Statistica\\Project_NBA\\nba_team_stats_playoffs_00_to_21.csv')
+data_team <- read.csv('nba_team_stats_00_to_21.csv')
+data_team_playoff <- read.csv('nba_team_stats_playoffs_00_to_21.csv')
 
 # Extract the data of season 20/21
 data_team <- data_team[data_team$SEASON == '2020-21', ]
@@ -110,9 +110,157 @@ data <- data[rowSums(is.na(data)) == 0, ]
 # Check if there is NA values
 colSums(is.na(data))
 
+
+########################################################################################
+########################################################################################
+#=======================================================================================
+# PLAYER_METRIC dataset
+#player_metrics <- read.csv('C:\\Users\\Acer\\Desktop\\2_1\\Statistica\\Project_NBA\\player_metrics.csv')
+#---------------------------------------------------------------------------------------
+
+# Combine last and first name as Player and remove the useless columns
+#player_metrics$Player <- paste(player_metrics$fnm, player_metrics$lnm, sep=' ')
+#player_metrics <- player_metrics %>% select(-c('pid', 'fnm', 'lnm'))
+
+# Merge the metric dataset and the player dataset
+#data <- left_join(data, player_metrics, by='Player')
+
+# Check if there is NA values
+#colSums(is.na(data))
+#rowSums(is.na(data))
+#--------------------------------------------------------------------------------------
+# The player metrics has too many NA values
+########################################################################################
+########################################################################################
+#=======================================================================================
+
+# Path dataset with group-by function
+path <- read.csv('path_detail.csv')
+path_def <- read.csv('path_detail_defended.csv')
+path_open <- read.csv('path_detail_open.csv')
+path_made <- read.csv('path_detail_made.csv')
+path_miss <- read.csv('path_detail_miss.csv')
+
+
+
+
+
+
+
+
+#---------------------------------------------------------------------------------------
+# Check for the number of NA values 
+colSums(is.na(path))
+rowSums(is.na(path))
+
+colSums(is.na(path_open))
+rowSums(is.na(path_open))
+
+colSums(is.na(path_def))
+rowSums(is.na(path_def))
+
+colSums(is.na(path_made))
+rowSums(is.na(path_made))
+
+colSums(is.na(path_miss))
+rowSums(is.na(path_miss))
+#---------------------------------------------------------------------------------------
+# Notice that by columns, all the columns have a lot of NA values, however, if we look by
+# the rows, there is a lot of rows that don't have NA values, hence, we will try to work
+# with the rows instead of the columns.
+#---------------------------------------------------------------------------------------
+# Select the rows of path dataset that does not contain any NA values
+path <- path[complete.cases(path),]
+length(path)
+
+path_made <- path_made[complete.cases(path_made),]
+length(path_made)
+
+path_miss <- path_miss[complete.cases(path_miss),]
+length(path_miss)
+
+path_open <- path_open[complete.cases(path_open),]
+length(path_open)
+
+path_def <- path_def[complete.cases(path_def),]
+length(path_def)
+
+#=======================================================================================
+# Remove the redundant columns
+path$Player <- paste(path$fnm, path$lnm, sep=' ')
+path <- path %>% select(-c('pid', 'fnm', 'lnm', 'hght', 't'))
+
+path_def$Player <- paste(path_def$fnm, path_def$lnm, sep=' ')
+path_def <- path_def %>% select(-c('pid', 'fnm', 'lnm', 'hght', 't'))
+
+path_open$Player <- paste(path_open$fnm, path_open$lnm, sep=' ')
+path_open <- path_open %>% select(-c('pid', 'fnm', 'lnm', 'hght', 't'))
+
+path_made$Player <- paste(path_made$fnm, path_made$lnm, sep=' ')
+path_made <- path_made %>% select(-c('pid', 'fnm', 'lnm', 'hght', 't'))
+
+path_miss$Player <- paste(path_miss$fnm, path_miss$lnm, sep=' ')
+path_miss <- path_miss %>% select(-c('pid', 'fnm', 'lnm', 'hght', 't'))
+
+#=======================================================================================
+# Group different dataset by Player with mean statistics
+#---------------------------------------------------------------------------------------
+path = path %>% group_by(Player)%>%
+  summarise(across(everything(), mean),
+            .groups = 'drop')  %>%
+  as.data.frame()
+
+path_def = path_def %>% group_by(Player)%>%
+  summarise(across(everything(), mean),
+            .groups = 'drop')  %>%
+  as.data.frame()
+
+path_open = path_open %>% group_by(Player)%>%
+  summarise(across(everything(), mean),
+            .groups = 'drop')  %>%
+  as.data.frame()
+
+path_made = path_made %>% group_by(Player)%>%
+  summarise(across(everything(), mean),
+            .groups = 'drop')  %>%
+  as.data.frame()
+
+path_miss = path_miss %>% group_by(Player)%>%
+  summarise(across(everything(), mean),
+            .groups = 'drop')  %>%
+  as.data.frame()
+
+#======================================================================================
+#--------------------------------------------------------------------------------------
+# Merge the datasets
+data <- left_join(data, path, by='Player')
+data <- left_join(data, path_def, by='Player')
+data <- left_join(data, path_open, by='Player')
+data <- left_join(data, path_made, by='Player')
+data <- left_join(data, path_miss, by='Player')
+#======================================================================================
+
+rowSums(is.na(data))
+data <- data[complete.cases(data),]
+
+sort(data$Player)
+
+########################################################################################
+########################################################################################
+#=======================================================================================
+# NEW IDEA: The codes above showed that the strategy with rows works, our non-NA dataset
+# changes the size from (85, 111) to (35, 129). The number of features can be further
+# increased by considering other path dataset.
+#---------------------------------------------------------------------------------------
+# For each path dataset, we will get path details of the player by taking the mean of 
+# info about that player in that dataset.
+########################################################################################
+########################################################################################
+#=======================================================================================
+
+
+
 View(data)
-
-
 
 
 rm(list = ls())
