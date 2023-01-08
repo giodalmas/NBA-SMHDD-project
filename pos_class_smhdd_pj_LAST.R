@@ -58,11 +58,6 @@ rowSums(is.na(data_pl))
 # might be some players are not listed in the 2K dataset, and we can check it by one of the 
 # player.
 
-# EX. Check if Jaylen Adams present in the2K dataset 
-jaylen <- data_2k[data_2k$Player == 'Jaylen Adams']
-jaylen
-# We can see that jaylen is not present in the dataset
-
 #---------------------------------------------------------------------------------------
 
 # Remove all the players that are not in the 2K dataset
@@ -135,7 +130,7 @@ library(imbalance)
 library(dplyr)
 library(ROSE)
 
-# Balance the classes using ROSE to oversample the minority classes
+# Balance the classes using RACOG to oversample the minority classes
 
 all_data_num$Pos <-  all_data$Pos
 
