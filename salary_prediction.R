@@ -49,8 +49,9 @@ ratio_lasso <- length(rel_error_lasso[rel_error_lasso< 0.4]) / length(Y_test)
 ratio_lasso
 
 
+
 # mse
-mse_lasso <- round(mean((pred_lasso - Y_test)^2))
+mse_lasso <- round(mean((pred_lasso - Y_test)^2), 2)
 
 
 #=====================================================================================
@@ -92,7 +93,7 @@ ratio_ridge <- length(rel_error_ridge[rel_error_ridge< 0.4]) / length(Y_test)
 ratio_ridge
 
 
-mse_ridge <- round(mean((pred_ridge - Y_test)^2))
+mse_ridge <- round(mean((pred_ridge - Y_test)^2), 2)
 
 
 #=====================================================================================
@@ -105,7 +106,8 @@ model_net <- train(
   tuneLength = 10
 )
 # Best tuning parameter
-model_net$bestTune
+alpha_net <- model_net$bestTune[1]
+lambda_net <- model_net$bestTune[2]
 
 # Model coefficients
 coef_net <- coef(model_net$finalModel, model_net$bestTune$lambda)
@@ -114,6 +116,9 @@ pred_net <- model_net %>% predict(X_test_net)
 rel_error_net <- abs(pred_net -Y_test) / Y_test
 ratio_net <- length(rel_error_net[rel_error_net< 0.4]) / length(Y_test)
 ratio_net
+
+
+mse_net <- round(mean((pred_net - Y_test)^2), 2)
 
 ############################################################################################
 ############################################################################################
@@ -145,7 +150,7 @@ alasso_cv <- cv.glmnet(x = X_train, y = Y_train,
 ## Penalty vs CV MSE plot
 plot(alasso_cv)
 
-alasso_cv$lambda.min
+lambda_alasso <- alasso_cv$lambda.min
 coef_adp <- coef(alasso_cv, s = alasso_cv$lambda.min)
 coef_adp
 
@@ -154,6 +159,7 @@ rel_error_adp <- abs(pred_adp -Y_test) / Y_test
 ratio_adp <- length(rel_error_adp[rel_error_adp< 0.4]) / length(Y_test)
 ratio_adp
 
+mse_adp <- round(mean((pred_adp - Y_test)^2), 2)
 
 
 ratio_adp
@@ -168,7 +174,41 @@ coef_net
 coef_ridge
 
 
+round(lambda_ridge_grid, 2)
+round(lambda_lasso, 2)
+round(lambda_alasso, 2)
+round(lambda_net, 2)
+round(alpha_net, 2)
 
 
+data_compare <- data %>% relocate(salary)  # move salary to the first column
+data_compare
+data_compare[data_compare$Tm_GSW == 1, ]
+data_compare[data_compare$Tm_MEM == 1, ]   # get all the players of MEM
+data_compare[data_compare$Tm_TOR == 1, ]   # get all the players of TOR 
+data_compare[data_compare$Tm_PHO == 1, ]   # get all the players of TOR 
+
+
+mean_salary <- mean(data_compare$salary)
+
+data_compare[data_compare$Pos_SF == 1, ]   # SF
+
+mean(data_compare[data_compare$FT. > 0.85, ]$salary)
+mean(data_compare$FT.)
+
+data_compare_FT <- data_compare %>% relocate(FT.)  # move FT to the first column
+
+player_high_paid <- data_compare_FT[data_compare_FT$salary > 20000000, ]
+mean(player_high_paid$FTA)
+mean(data_compare_FT$FTA)
+
+
+mean(data_compare_FT[data_compare_FT$FT. > 0.72 , ]$salary)
+
+mse_lasso
+mse_min_grid
+mse_net
+mse_ridge
+mse_adp
 
 rm(list = ls())
