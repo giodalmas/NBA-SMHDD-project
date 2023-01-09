@@ -1,3 +1,4 @@
 This is the project for the course of Statistical Method for High Dimensional Data by Prof. Bruno Scarpa. 
 
-The file 'Project__High_Dim_Stat_main_dataset.R' contains the code for the creation of the main dataset used for the project. Some modifications of the dataset are made depending on the interested topics and they can be found in the specified files.
+We focus on the NBA dataset collected from various source on the internet and perform three tasks: salary prediction, position classification and three point shooting accuracy.
+There are three different files: data_generation, dataset and code which contains the codes to merge and clean the dataset, the raw dataset and the modified ones, codes to three different tasks.
