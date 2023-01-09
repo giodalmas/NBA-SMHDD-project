@@ -1,4 +1,5 @@
 #===========================================================================================================================
+#NBA PLAYER POSITION CLASSIFICATION
 library(data.table)
 library(Matrix)
 library(glmnet)
@@ -111,7 +112,7 @@ all_data <- select(data_2k_pl_full, -c(Player, TEAM, salary))
 all_data_num <- select(all_data, -Pos)
 #all_data_num <- lapply(all_data_num, as.numeric)
 
-all_data_num[, 1:84] <- apply(all_data_num[, 1:84], 2,            # Specify own function within apply
+all_data_num[, 1:84] <- apply(all_data_num[, 1:84], 2,          
                     function(x) as.numeric(as.character(x)))
 str(all_data_num)
 #=======================================================================================
@@ -222,47 +223,77 @@ test_data <- data_balanced[-train_idx, ]
 # Create X_tr by removing response variable (Pos)
 # y_tr response variable
 
-
 X_tr <- select(train_data, -Pos)
 y_tr <- train_data$Pos
 
-X_test <- test_data
+X_test <- select(test_data, -Pos)
 y_test <- test_data$Pos
 
 #=======================================================================================
 # MULTICLASS CLASSIFICATION
 #=======================================================================================
+# BASELINE: RANDOM FOREST
+library(caret)
+
+set.seed(123)
+# Training with Random forest model
+train_ctrl <- trainControl(method="cv", # type of resampling in this case Cross-Validated
+                           number=5, # number of folds
+                           search = "random",
+)
+
+fit_rf <- train(Pos ~ .,
+                  data = train_data,
+                  method = "rf", # this will use the randomForest::randomForest function
+                  metric = "Accuracy", # which metric should be optimized for 
+                  trControl = train_ctrl,
+                  # options to be passed to randomForest
+                  ntree = 525,
+                  keep.forest=TRUE,
+                  importance=TRUE) 
+
+fit_rf
+
+# Accuracy of 94.12% with mtry = 22 (mtry: Number of variables randomly sampled as candidates at each split.)
+
+#=======================================================================================
 # MULTINOMIAL LOGISTIC REGRESSION
 #Classify players position based on stats and nba 2k attributes
 
 library(glmnet)
+library(ggplot2)
+library(lattice)
+library(caret)
 
 # get lambda sequence
-grid = 10^seq(1,-10,length=50) 
+grid = 10^seq(1,-10,length=100) 
 
 # Fit multinomial log reg model
-fit <- glmnet(data.matrix(X_tr), y_tr, family = "multinomial", nlambda = 50)
+set.seed(123)
+fit <- glmnet(data.matrix(X_tr), y_tr, family = "multinomial", nlambda = 100)
 
 # Plot of each coefficient for each class
-par(mfrow=c(2,3));plot(fit,xvar="dev", label = TRUE) 
+par(mfrow=c(2, 3 ), mar = c(1, 1, 1, 1))
+plot(fit, label = TRUE) 
+
+par(mfrow=c(2,3));plot(fit,label = TRUE) # Plot the paths for the fit
 
 set.seed(123)
 
-cv.fit <- cv.glmnet(data.matrix(X_tr), y_tr, family= 'multinomial', type = 'mse', lambda = grid,  nfolds = 5)
+cv.fit <- cv.glmnet(data.matrix(X_tr), y_tr, family= 'multinomial', type.measure = 'class', lambda = grid,  nfolds = 5)
 
-# Plot the mean sq error for the cross validated fit as a function
+# Plot the missclassification error for the cross validated fit as a function
 par(mfrow = c(1, 1))
 plot(cv.fit)	
-coef(cv.fit)
 
 cv.fit$lambda.min
 cv.fit$lambda.1se
+cv.fit$cvm
 
 #c(lambda.min = log(cv.fit$lambda.min), lambda.1se = log(cv.fit$lambda.1se))
 
+# cross validated prediction error
 plot(log(cv.fit$lambda), cv.fit$cvm)
-plot(cv.fit)
-coef(cv.fit, c(cv.fit$lambda.min, cv.fit$lambda.1se))
 
 # Let’s take a look at the non-zero coefficients in the model for lambda min
 temp <- coef(cv.fit, s = cv.fit$lambda.min)
@@ -278,52 +309,18 @@ beta <- beta[apply(beta != 0, 1, any),]
 colnames(beta) <- names(temp)
 beta
 
-##### TO CHECK
-
 # Make predictions on the test set 
-pred = predict(cv.fit, newx= data.matrix(X_test), type="response")
-mean(pred!= y_test)
-####
-predictions <- predict(fit, X_test$Pos)
+set.seed(123)
+pred_mult = predict(cv.fit, newx= data.matrix(X_test), type='class')
 
-# Calculate the accuracy
-accuracy <- mean(predictions == y_te)
+# Accuracy
+mean(pred_mult == y_test)
 
-# Plot the accuracy
-plot(fit, xvar = "lambda", label = TRUE)
-abline(h = accuracy, col = "red")
-par(mfrow= c(2, 3), mar = c(1, 1, 1, 1))
+# The accuracy is actually very good, the model classifies correctly 91.53% of the player positions
 
-# Extract the coefficients from the model fit
-coefs <- coef(fit)
-
-# Extract the names of the features
-feature_names <- colnames(X_tr)
-
-# Plot the coefficients as a function of lambda
-plot(fit, xvar = "lambda", label = TRUE)
-
-# Add a legend with the feature names
-legend("topright", legend = paste(1:length(feature_names), feature_names, sep = " - "), 
-       col = 1:length(feature_names), lty = 1)
-
-text(x = 1:length(feature_names), y = rep(1, length(feature_names)), 
-     labels = 1:length(feature_names), cex = 0.8, font = 2)
+# Let's take a look at the confusion matrix
+confusionMatrix(factor(y_test), factor(pred_mult))
 
 
-
-#convert the coeff to a matrix and then to a data frame 
-#to pass it as data argument in the ggplot function
-matrix_coef = as.matrix(coef(fit, complete = TRUE))
-df_coef <- as.data.frame(matrix_coef)
-
-lambda <- fit$lambda #vector of lambdas
-
-ggplot(df_coef, aes(y = lambda, x = 'value', color = 'variable'))
-+geom_line() + 
-  facet_wrap(~ variable, scales= "free_y")
-
-plot_ly(data = df_coef, x = ~lambda, y = ~value, color = ~variable) %>%
-  add_markers()
 
 
